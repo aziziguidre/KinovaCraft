@@ -1,4 +1,4 @@
-# 🤖 KinovaCraft — Planification de Trajectoire & Co-Simulation Kinova Gen3 6-DOF (MATLAB & ROS 2)
+# 🤖 KinovaCraft — Trajectory Planning & Co-Simulation for Kinova Gen3 6-DOF (MATLAB & ROS 2)
 
 ![MATLAB](https://img.shields.io/badge/MATLAB-R2021a%2B-orange.svg)
 ![ROS 2](https://img.shields.io/badge/ROS%202-Humble-blue.svg)
@@ -6,107 +6,107 @@
 ![Gripper](https://img.shields.io/badge/Gripper-Robotiq%202F--85-lightgrey.svg)
 ![Author](https://img.shields.io/badge/Author-Aziz-brightgreen.svg)
 
-Projet complet de génération de formes paramétriques, résolution de cinématique inverse sécurisée, comparaison de 4 interpolations articulaires et co-simulation temps réel entre **MATLAB** et **ROS 2 / RViz2** pour le bras manipulateur **Kinova Gen3 à 6 DOF** équipé de la pince **Robotiq 2F-85**.
+Comprehensive project for parametric shape generation, safe inverse kinematics resolution, benchmark of 4 joint-space interpolation methods, and real-time co-simulation between **MATLAB** and **ROS 2 / RViz2** for the **Kinova Gen3 6-DOF** manipulator equipped with the **Robotiq 2F-85** gripper.
 
 ---
 
-## 📸 Aperçu & Résultats Visuels
+## 📸 Preview & Visual Results
 
-### 1. Simulation Animée du Kinova Gen3 (Trajectoire au Tool Center Point)
-La pince Robotiq se referme dès le premier point, maintient fermement l'outil pendant tout le tracé de la forme, et la trace orange continue est émise directement depuis l'extrémité des mors fermés (TCP).
+### 1. Kinova Gen3 Animated Simulation (Trajectory at Tool Center Point)
+The Robotiq gripper closes at the very first point, firmly holds the tool throughout the entire trajectory tracing, and the continuous orange path is drawn directly from the tip of the closed fingers (TCP).
 
 <p align="center">
-  <img src="kinova_trajectory_matlab/results/trajectoire_preview.gif" alt="Simulation Animée Kinova Gen3" width="720"/>
+  <img src="kinova_trajectory_matlab/results/trajectoire_preview.gif" alt="Kinova Gen3 Animated Simulation" width="720"/>
 </p>
 
 ---
 
-### 2. Forme Paramétrique 3D & Waypoints d'Attaque
-Visualisation 3D montrant la pose initiale du manipulateur, la trajectoire fermée et la distribution des waypoints validés par cinématique inverse ($< 10^{-3}\text{ m}$).
+### 2. 3D Parametric Shape & Target Waypoints
+3D visualization showing the manipulator initial pose, the closed trajectory path, and the distribution of waypoints validated through inverse kinematics ($< 10^{-3}\text{ m}$).
 
 <p align="center">
-  <img src="kinova_trajectory_matlab/results/forme_3d.png" alt="Forme 3D et Waypoints" width="700"/>
+  <img src="kinova_trajectory_matlab/results/forme_3d.png" alt="3D Shape and Waypoints" width="700"/>
 </p>
 
 ---
 
-### 3. Profils Articulaires Complets — Méthode Quintique
-Évolution temporelle des positions $q_i(t)$, vitesses $\dot{q}_i(t)$ et accélérations $\ddot{q}_i(t)$ pour les 6 articulations avec report des limites physiques admissibles (lignes pointillées rouges).
+### 3. Complete Joint Profiles — Quintic Polynomial Method
+Time evolution of joint positions $q_i(t)$, velocities $\dot{q}_i(t)$, and accelerations $\ddot{q}_i(t)$ for the 6 joints with physical limit boundaries indicated by red dashed lines.
 
 <p align="center">
-  <img src="kinova_trajectory_matlab/results/profils_articulaires.png" alt="Profils Articulaires" width="700"/>
+  <img src="kinova_trajectory_matlab/results/profils_articulaires.png" alt="Joint Profiles" width="700"/>
 </p>
 
 ---
 
-### 4. Benchmark Comparatif des 4 Méthodes
-Comparaison quantitative sur 4 critères clés : **Vitesse maximale**, **Accélération maximale**, **Jerk maximal** (continuité/à-coups) et **Temps de calcul algorithmique**.
+### 4. Benchmark Comparison of the 4 Methods
+Quantitative comparison across 4 key metrics: **Maximum Velocity**, **Maximum Acceleration**, **Maximum Jerk** (smoothness/chatter), and **Algorithmic Computation Time**.
 
 <p align="center">
-  <img src="kinova_trajectory_matlab/results/comparaison_methodes.png" alt="Comparaison des Méthodes" width="700"/>
+  <img src="kinova_trajectory_matlab/results/comparaison_methodes.png" alt="Method Comparison" width="700"/>
 </p>
 
-#### Tableau Récapitulatif des Métriques (`metrics_comparison.csv`) :
-| Méthode d'Interpolation | Durée totale ($s$) | Temps calcul ($ms$) | Vitesse max ($\text{rad/s}$) | Accélération max ($\text{rad/s}^2$) | Jerk max ($\text{rad/s}^3$) | Échecs IK | Limites OK |
+#### Summary Metrics Table (`metrics_comparison.csv`):
+| Interpolation Method | Total Duration ($s$) | Computation Time ($ms$) | Max Velocity ($\text{rad/s}$) | Max Acceleration ($\text{rad/s}^2$) | Max Jerk ($\text{rad/s}^3$) | IK Failures | Limits OK |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **`trapveltraj`** (Trapézoïdale) | 5.0 | 3.37 | 0.037 | 0.022 | 0.85 | 0 | **OUI** ✅ |
-| **`cubicpolytraj`** (Cubique $C^1$) | 5.0 | 2.02 | 1.742 | 56.46 | 1446.12 | 0 | NON ⚠️ |
-| **`quinticpolytraj`** (Quintique $C^2$) | 5.0 | 2.67 | 2.107 | 63.62 | 2260.62 | 0 | NON ⚠️ |
-| **`bsplinepolytraj`** (B-spline $C^2$) | 5.0 | 0.52 | 1.261 | 9.42 | 115.81 | 0 | NON ⚠️ |
+| **`trapveltraj`** (Trapezoidal) | 5.0 | 3.37 | 0.037 | 0.022 | 0.85 | 0 | **YES** ✅ |
+| **`cubicpolytraj`** (Cubic $C^1$) | 5.0 | 2.02 | 1.742 | 56.46 | 1446.12 | 0 | NO ⚠️ |
+| **`quinticpolytraj`** (Quintic $C^2$) | 5.0 | 2.67 | 2.107 | 63.62 | 2260.62 | 0 | NO ⚠️ |
+| **`bsplinepolytraj`** (B-spline $C^2$) | 5.0 | 0.52 | 1.261 | 9.42 | 115.81 | 0 | NO ⚠️ |
 
-> *Note : Les dépassements pour une durée courte ($5\,\text{s}$) s'atténuent en augmentant la durée totale (`p.traj.total_time = 20.0`) dans `params.m` pour obtenir un mouvement doux et 100% conforme.*
-
----
-
-## 🌟 Fonctionnalités Clés
-
-- **Modèle officiel Kinova Gen3 6-DOF** : Chargé via `importrobot('gen3_6dof.urdf')` (exactement 6 articulations mobiles contrôlées, assertion stricte `assert(numel(q) == 6)`).
-- **Tool Center Point (TCP)** : Tracé continu émis directement au contact du **bout des mors** de la pince (`tcp_link`, Z = +12 cm de la bride).
-- **Contrôle actif de la pince Robotiq 2F-85** : Fermeture au 1er point lors de l'attaque du dessin, maintien de la préhension pendant le tracé, et ouverture automatique au dernier point.
-- **Formes paramétriques cartésiennes** :
-  - `rose` (Courbe Rhodonée avec paramètre `n_petals`, période adaptée pour éviter les redoublements).
-  - `fish` (Courbe du poisson paramétrique).
-  - `square` (Carré fermé).
-- **Cinématique Inverse (IK) robuste** : Encapsulation `try-catch`, rejet des singularités et tolérance d'erreur stricte ($< 10^{-3}\text{ m}$).
-- **Benchmark de 4 méthodes d'interpolation** :
-  1. Trapézoïdale de vitesse (`trapveltraj`)
-  2. Polynôme cubique $C^1$ (`cubicpolytraj`)
-  3. Polynôme quintique $C^2$ (`quinticpolytraj`)
-  4. B-spline uniforme $C^2$ (`bsplinepolytraj`)
-- **Indicateurs de performance automatisés** : Durée, temps de calcul, $\dot{q}_{\max}$, $\ddot{q}_{\max}$, jerk maximal ($\text{rad/s}^3$), échecs IK, validation des limites dynamiques et export CSV.
-- **Co-simulation ROS 2 / RViz2 sans fil** : Streaming en direct via DDS (`/joint_states` et `/trajectory_path`) vers RViz2 sur machine hôte ou VM.
-- **Zéro valeur en dur** : Tous les réglages proviennent exclusivement de `params.m`.
+> *Note: Limit violations over a short duration ($5\,\text{s}$) can be easily resolved by increasing the total trajectory duration (`p.traj.total_time = 20.0`) in `params.m` to achieve smooth and 100% compliant motion.*
 
 ---
 
-## 📁 Arborescence du Projet
+## 🌟 Key Features
+
+- **Official Kinova Gen3 6-DOF Model**: Loaded via `importrobot('gen3_6dof.urdf')` (strictly 6 active controlled joints, enforced by `assert(numel(q) == 6)`).
+- **Tool Center Point (TCP)**: Continuous trail drawn directly at the **tip of the gripper fingers** (`tcp_link`, Z = +12 cm from the wrist flange).
+- **Active Robotiq 2F-85 Gripper Control**: Automatic closing at the first point when starting the shape, holding during trajectory tracing, and automatic opening at the final point.
+- **Cartesian Parametric Shapes**:
+  - `rose` (Rhodonea rose curve with configurable `n_petals`, adapted period to prevent redundant loops).
+  - `fish` (Parametric fish curve).
+  - `square` (Closed square path).
+- **Robust Inverse Kinematics (IK)**: Encapsulated in `try-catch` blocks, singularity rejection, and strict error tolerance ($< 10^{-3}\text{ m}$).
+- **Benchmark of 4 Interpolation Methods**:
+  1. Trapezoidal velocity profile (`trapveltraj`)
+  2. Cubic piecewise polynomial $C^1$ (`cubicpolytraj`)
+  3. Quintic piecewise polynomial $C^2$ (`quinticpolytraj`)
+  4. Uniform B-spline $C^2$ (`bsplinepolytraj`)
+- **Automated Performance Metrics**: Duration, computation time, $\dot{q}_{\max}$, $\ddot{q}_{\max}$, maximum jerk ($\text{rad/s}^3$), IK failures, physical limits compliance boolean, and CSV export.
+- **Wireless ROS 2 / RViz2 Co-Simulation**: Real-time DDS streaming (`/joint_states` and `/trajectory_path`) to RViz2 running on a host machine or VM.
+- **Zero Hard-Coded Values**: Every parameter is loaded exclusively from `params.m`.
+
+---
+
+## 📁 Repository Structure
 
 ```
 KinovaCraft/
-├── README.md                          # Documentation complète avec résultats visuels
-├── .gitignore                         # Fichiers ignorés (builds ROS 2, temporaires MATLAB)
-├── kinova_trajectory_matlab/           # Projet MATLAB principal
-│   ├── main.m                         # Point d'entrée principal du pipeline
-│   ├── params.m                       # Fichier de configuration unique (zéro valeur en dur)
-│   ├── setup_urdf.sh                  # Script automatisé de préparation URDF / meshes
-│   ├── README.md                      # Documentation interne du package MATLAB
+├── README.md                          # Main project documentation with visual results
+├── .gitignore                         # Ignored files (ROS 2 build artifacts, MATLAB temp files)
+├── kinova_trajectory_matlab/           # Main MATLAB project
+│   ├── main.m                         # Main entry point pipeline
+│   ├── params.m                       # Central configuration file (zero hard-coded values)
+│   ├── setup_urdf.sh                  # Automated URDF / mesh setup script
+│   ├── README.md                      # Inner MATLAB package documentation
 │   ├── src/
-│   │   ├── load_robot_model.m         # Import URDF, extraction dynamique EE (TCP) et limites
-│   │   ├── generate_shape.m           # Générateur cartésien (rose, poisson, carré)
-│   │   ├── solve_ik_for_shape.m       # Résolution IK sécurisée try-catch
-│   │   ├── plan_trajectories.m        # Moteur des 4 méthodes de trajectoire
-│   │   ├── evaluate_metrics.m         # Calcul des métriques, tableau console et export CSV
-│   │   ├── plot_shape_3d.m            # Figure 3D de la forme et des waypoints
-│   │   ├── plot_joint_profiles.m      # Profils q, q̇, q̈ avec lignes limites rouges
-│   │   ├── plot_comparison_bar.m      # Bar chart comparatif multi-critères
-│   │   ├── animate_robot.m            # Rendu vidéo MP4 rapide avec pince active
-│   │   ├── publish_ros2_trajectory.m  # Nœud publisher ROS 2 en streaming synchronisé
-│   │   └── urdf/                      # URDF 6-DOF adapté et meshes 3D
+│   │   ├── load_robot_model.m         # Import URDF, dynamic EE (TCP) extraction & limits
+│   │   ├── generate_shape.m           # Cartesian shape generator (rose, fish, square)
+│   │   ├── solve_ik_for_shape.m       # Safe IK solver with try-catch
+│   │   ├── plan_trajectories.m        # Core engine for the 4 trajectory methods
+│   │   ├── evaluate_metrics.m         # Metrics evaluation, console table & CSV export
+│   │   ├── plot_shape_3d.m            # 3D plot of shape and waypoints
+│   │   ├── plot_joint_profiles.m      # q, q̇, q̈ joint profiles with red limit lines
+│   │   ├── plot_comparison_bar.m      # Multi-criteria comparative bar chart
+│   │   ├── animate_robot.m            # Fast MP4 video renderer with active gripper
+│   │   ├── publish_ros2_trajectory.m  # Synchronized streaming ROS 2 publisher node
+│   │   └── urdf/                      # Adapted 6-DOF URDF and 3D meshes
 │   │       ├── gen3_6dof.urdf
 │   │       └── meshes/
-│   │           ├── arm/               # STL officiels du bras Gen3 6-DOF
-│   │           └── gripper/           # DAE/STL de la pince Robotiq 2F-85
-│   └── results/                       # Fichiers générés automatiquement
+│   │           ├── arm/               # Official Gen3 6-DOF arm STL files
+│   │           └── gripper/           # Robotiq 2F-85 gripper DAE/STL files
+│   └── results/                       # Automatically generated results
 │       ├── forme_3d.png
 │       ├── profils_articulaires.png
 │       ├── comparaison_methodes.png
@@ -115,30 +115,30 @@ KinovaCraft/
 │       └── trajectoire_preview.gif
 │
 └── src/
-    ├── ros2_kortex/                   # Définitions officielles Kinova ROS 2 (kortex_description)
-    └── trajectory_planner_g6/         # Passerelle ROS 2 pour RViz2
+    ├── ros2_kortex/                   # Official Kinova ROS 2 definitions (kortex_description)
+    └── trajectory_planner_g6/         # ROS 2 bridge package for RViz2
         ├── launch/
-        │   └── matlab_rviz.launch.py  # Lance robot_state_publisher + RViz2
+        │   └── matlab_rviz.launch.py  # Launches robot_state_publisher + RViz2
         ├── rviz/
-        │   └── trajectory_viz.rviz    # Configuration RViz2 (RobotModel + Path orange)
+        │   └── trajectory_viz.rviz    # RViz2 configuration (RobotModel + orange Path)
         ├── scripts/
-        │   └── record_rviz.sh         # Script d'enregistrement vidéo RViz2
+        │   └── record_rviz.sh         # RViz2 video recording script
         ├── package.xml
         └── setup.py
 ```
 
 ---
 
-## ⚙️ Prérequis
+## ⚙️ Prerequisites
 
-### Côté MATLAB (Machine hôte Windows / Mac / Linux)
-- **MATLAB R2021a** ou ultérieur
-- **Robotics System Toolbox** (obligatoire)
-- **ROS Toolbox** (obligatoire pour la liaison en direct avec RViz2)
+### MATLAB Side (Host Machine Windows / Mac / Linux)
+- **MATLAB R2021a** or later
+- **Robotics System Toolbox** (required)
+- **ROS Toolbox** (required for live streaming connection to RViz2)
 
-### Côté ROS 2 (Linux Ubuntu 22.04 / VM)
+### ROS 2 Side (Linux Ubuntu 22.04 / VM)
 - **ROS 2 Humble**
-- Packages ROS 2 :
+- ROS 2 packages:
   ```bash
   sudo apt update
   sudo apt install -y ros-humble-robot-state-publisher ros-humble-rviz2 ros-humble-xacro
@@ -146,16 +146,16 @@ KinovaCraft/
 
 ---
 
-## 🚀 Guide d'Exécution Pas-à-Pas
+## 🚀 Step-by-Step Execution Guide
 
-### 1. Préparation de l'URDF (une seule fois, sous Linux)
+### 1. URDF Setup (Run once, on Linux)
 ```bash
 cd ~/KinovaCraft/kinova_trajectory_matlab
 ./setup_urdf.sh
 ```
-Ce script copie les maillages STL/DAE, configure le repère TCP au bout des doigts et garantit strictement 6 DOF actifs.
+This script copies the STL/DAE meshes, configures the TCP frame at the fingertip, and ensures exactly 6 active DOF for MATLAB.
 
-### 2. Lancement du visualiseur RViz2 (dans le terminal Linux)
+### 2. Launch the RViz2 Visualizer (in Linux terminal)
 ```bash
 cd ~/KinovaCraft
 source /opt/ros/humble/setup.bash
@@ -165,39 +165,39 @@ source install/setup.bash
 export ROS_DOMAIN_ID=30
 ros2 launch trajectory_planner_g6 matlab_rviz.launch.py
 ```
-> Le Kinova Gen3 6-DOF s'affiche dans RViz2 et attend les commandes de MATLAB.
+> The Kinova Gen3 6-DOF appears in RViz2 in passive mode, waiting for MATLAB trajectory commands.
 
-### 3. Exécution de la simulation sous MATLAB
-1. Ouvre MATLAB sur ta machine.
-2. Définis le dossier de travail :
+### 3. Run Simulation in MATLAB
+1. Open MATLAB on your machine.
+2. Set the current folder:
    ```matlab
-   cd('chemin/vers/KinovaCraft/kinova_trajectory_matlab')
+   cd('path/to/KinovaCraft/kinova_trajectory_matlab')
    ```
-3. Vérifie les paramètres dans `params.m` :
+3. Check parameters in `params.m`:
    ```matlab
-   p.shape.type     = 'rose';          % 'rose', 'fish', ou 'square'
-   p.ros2.enable    = true;            % Activer la co-simulation
-   p.ros2.domain_id = 30;              % Même Domain ID que la VM
+   p.shape.type     = 'rose';          % 'rose', 'fish', or 'square'
+   p.ros2.enable    = true;            % Enable co-simulation
+   p.ros2.domain_id = 30;              % Match your Linux VM Domain ID
    ```
-4. Lance l'exécution :
+4. Run the main script:
    ```matlab
    main
    ```
 
 ---
 
-## 📚 Références et Sources
+## 📚 References & Sources
 
-- **Kinova Robotics** : [ros2_kortex (GitHub)](https://github.com/Kinovarobotics/ros2_kortex) pour le modèle URDF officiel du Gen3 6-DOF.
-- **MathWorks Robotics System Toolbox** :
-  - `importrobot` : Importation d'arbres cinématiques rigides.
-  - `inverseKinematics` : Solveur numérique d'IK avec contraintes de pondération.
-  - `trapveltraj`, `cubicpolytraj`, `quinticpolytraj`, `bsplinepolytraj` : Outils de planification articulaire.
-- **Robotiq** : [robotiq_description](https://github.com/PickNikRobotics/robotiq_description) pour les maillages DAE/STL de la pince 2F-85.
+- **Kinova Robotics**: [ros2_kortex (GitHub)](https://github.com/Kinovarobotics/ros2_kortex) for the official Gen3 6-DOF URDF model.
+- **MathWorks Robotics System Toolbox**:
+  - `importrobot`: Rigid body tree model import.
+  - `inverseKinematics`: Numerical IK solver with weighting constraints.
+  - `trapveltraj`, `cubicpolytraj`, `quinticpolytraj`, `bsplinepolytraj`: Joint trajectory generation tools.
+- **Robotiq**: [robotiq_description](https://github.com/PickNikRobotics/robotiq_description) for Robotiq 2F-85 gripper DAE/STL meshes.
 
 ---
 
-## 👤 Auteur
+## 👤 Author
 
-**Aziz** — Ingénierie Robotique & Systèmes Autonomes  
-*Projet individuel réalisé avec passion.*
+**Aziz** — Robotics & Autonomous Systems Engineering  
+*Individual project built with passion.*
