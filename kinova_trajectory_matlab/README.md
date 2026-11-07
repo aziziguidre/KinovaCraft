@@ -10,6 +10,54 @@ Projet complet de génération de formes paramétriques, résolution de cinémat
 
 ---
 
+## 📸 Aperçu & Résultats Visuels
+
+### 1. Simulation Animée du Kinova Gen3 (Trajectoire au Tool Center Point)
+La pince Robotiq se referme dès le premier point, maintient fermement l'outil pendant tout le tracé de la forme, et la trace orange continue est émise directement depuis l'extrémité des mors fermés (TCP).
+
+<p align="center">
+  <img src="kinova_trajectory_matlab/results/trajectoire_preview.gif" alt="Simulation Animée Kinova Gen3" width="720"/>
+</p>
+
+---
+
+### 2. Forme Paramétrique 3D & Waypoints d'Attaque
+Visualisation 3D montrant la pose initiale du manipulateur, la trajectoire fermée et la distribution des waypoints validés par cinématique inverse ($< 10^{-3}\text{ m}$).
+
+<p align="center">
+  <img src="kinova_trajectory_matlab/results/forme_3d.png" alt="Forme 3D et Waypoints" width="700"/>
+</p>
+
+---
+
+### 3. Profils Articulaires Complets — Méthode Quintique
+Évolution temporelle des positions $q_i(t)$, vitesses $\dot{q}_i(t)$ et accélérations $\ddot{q}_i(t)$ pour les 6 articulations avec report des limites physiques admissibles (lignes pointillées rouges).
+
+<p align="center">
+  <img src="kinova_trajectory_matlab/results/profils_articulaires.png" alt="Profils Articulaires" width="700"/>
+</p>
+
+---
+
+### 4. Benchmark Comparatif des 4 Méthodes
+Comparaison quantitative sur 4 critères clés : **Vitesse maximale**, **Accélération maximale**, **Jerk maximal** (continuité/à-coups) et **Temps de calcul algorithmique**.
+
+<p align="center">
+  <img src="kinova_trajectory_matlab/results/comparaison_methodes.png" alt="Comparaison des Méthodes" width="700"/>
+</p>
+
+#### Tableau Récapitulatif des Métriques (`metrics_comparison.csv`) :
+| Méthode d'Interpolation | Durée totale ($s$) | Temps calcul ($ms$) | Vitesse max ($\text{rad/s}$) | Accélération max ($\text{rad/s}^2$) | Jerk max ($\text{rad/s}^3$) | Échecs IK | Limites OK |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **`trapveltraj`** (Trapézoïdale) | 5.0 | 3.37 | 0.037 | 0.022 | 0.85 | 0 | **OUI** ✅ |
+| **`cubicpolytraj`** (Cubique $C^1$) | 5.0 | 2.02 | 1.742 | 56.46 | 1446.12 | 0 | NON ⚠️ |
+| **`quinticpolytraj`** (Quintique $C^2$) | 5.0 | 2.67 | 2.107 | 63.62 | 2260.62 | 0 | NON ⚠️ |
+| **`bsplinepolytraj`** (B-spline $C^2$) | 5.0 | 0.52 | 1.261 | 9.42 | 115.81 | 0 | NON ⚠️ |
+
+> *Note : Les dépassements pour une durée courte ($5\,\text{s}$) s'atténuent en augmentant la durée totale (`p.traj.total_time = 20.0`) dans `params.m` pour obtenir un mouvement doux et 100% conforme.*
+
+---
+
 ## 🌟 Fonctionnalités Clés
 
 - **Modèle officiel Kinova Gen3 6-DOF** : Chargé via `importrobot('gen3_6dof.urdf')` (exactement 6 articulations mobiles contrôlées, assertion stricte `assert(numel(q) == 6)`).
@@ -35,11 +83,13 @@ Projet complet de génération de formes paramétriques, résolution de cinémat
 
 ```
 KinovaCraft/
+├── README.md                          # Documentation complète avec résultats visuels
+├── .gitignore                         # Fichiers ignorés (builds ROS 2, temporaires MATLAB)
 ├── kinova_trajectory_matlab/           # Projet MATLAB principal
 │   ├── main.m                         # Point d'entrée principal du pipeline
 │   ├── params.m                       # Fichier de configuration unique (zéro valeur en dur)
 │   ├── setup_urdf.sh                  # Script automatisé de préparation URDF / meshes
-│   ├── README.md                      # Documentation du projet
+│   ├── README.md                      # Documentation interne du package MATLAB
 │   ├── src/
 │   │   ├── load_robot_model.m         # Import URDF, extraction dynamique EE (TCP) et limites
 │   │   ├── generate_shape.m           # Générateur cartésien (rose, poisson, carré)
@@ -61,11 +111,12 @@ KinovaCraft/
 │       ├── profils_articulaires.png
 │       ├── comparaison_methodes.png
 │       ├── metrics_comparison.csv
-│       └── trajectoire.mp4
+│       ├── trajectoire.mp4
+│       └── trajectoire_preview.gif
 │
 └── src/
-    ├── ros2_kortex/                   # Définitions officielles Kinova ROS 2
-    └── trajectory_planner_g6/         # Package ROS 2 pour la passerelle RViz2
+    ├── ros2_kortex/                   # Définitions officielles Kinova ROS 2 (kortex_description)
+    └── trajectory_planner_g6/         # Passerelle ROS 2 pour RViz2
         ├── launch/
         │   └── matlab_rviz.launch.py  # Lance robot_state_publisher + RViz2
         ├── rviz/
@@ -132,19 +183,6 @@ ros2 launch trajectory_planner_g6 matlab_rviz.launch.py
    ```matlab
    main
    ```
-
----
-
-## 📊 Résultats Produits
-
-À chaque exécution, le dossier `results/` est alimenté avec :
-| Fichier | Description |
-|---|---|
-| `forme_3d.png` | Forme paramétrique 3D, robot à la pose initiale et waypoints validés |
-| `profils_articulaires.png` | Profils $q(t)$, $\dot{q}(t)$, $\ddot{q}(t)$ avec limites rouges pointillées |
-| `comparaison_methodes.png` | Bar chart comparatif (vitesse max, accélération max, jerk, temps de calcul) |
-| `metrics_comparison.csv` | Tableau synthétique exporté au format CSV |
-| `trajectoire.mp4` | Vidéo d'animation fluide avec fermeture de pince et tracé au contact |
 
 ---
 
