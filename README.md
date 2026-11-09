@@ -162,7 +162,7 @@ source /opt/ros/humble/setup.bash
 colcon build --packages-select trajectory_planner_g6 --symlink-install
 source install/setup.bash
 
-export ROS_DOMAIN_ID=<your_VMware_ID> ex:10
+export ROS_DOMAIN_ID= <your_VMware_ID>
 ros2 launch trajectory_planner_g6 matlab_rviz.launch.py
 ```
 > The Kinova Gen3 6-DOF appears in RViz2 in passive mode, waiting for MATLAB trajectory commands.
@@ -193,9 +193,10 @@ ros2 launch trajectory_planner_g6 matlab_rviz.launch.py
   - `importrobot`: Rigid body tree model import.
   - `inverseKinematics`: Numerical IK solver with weighting constraints.
   - `trapveltraj`, `cubicpolytraj`, `quinticpolytraj`, `bsplinepolytraj`: Joint trajectory generation tools.
-  
+
 ---
 
-##  Author
+## 👤 Author
 
 **Aziz IGUIDRE** — Future Engineer in Mechatronic at ENSA FES 
+

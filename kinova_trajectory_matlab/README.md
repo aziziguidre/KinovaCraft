@@ -1,4 +1,4 @@
-# 🤖 KinovaCraft — Trajectory Planning & Co-Simulation for Kinova Gen3 6-DOF (MATLAB & ROS 2)
+#  KinovaCraft — Trajectory Planning & Co-Simulation for Kinova Gen3 6-DOF (MATLAB & ROS 2)
 
 ![MATLAB](https://img.shields.io/badge/MATLAB-R2021a%2B-orange.svg)
 ![ROS 2](https://img.shields.io/badge/ROS%202-Humble-blue.svg)
@@ -10,7 +10,7 @@ Comprehensive project for parametric shape generation, safe inverse kinematics r
 
 ---
 
-## 📸 Preview & Visual Results
+##  Preview & Visual Results
 
 ### 1. Kinova Gen3 Animated Simulation (Trajectory at Tool Center Point)
 The Robotiq gripper closes at the very first point, firmly holds the tool throughout the entire trajectory tracing, and the continuous orange path is drawn directly from the tip of the closed fingers (TCP).
@@ -58,7 +58,7 @@ Quantitative comparison across 4 key metrics: **Maximum Velocity**, **Maximum Ac
 
 ---
 
-## 🌟 Key Features
+##  Key Features
 
 - **Official Kinova Gen3 6-DOF Model**: Loaded via `importrobot('gen3_6dof.urdf')` (strictly 6 active controlled joints, enforced by `assert(numel(q) == 6)`).
 - **Tool Center Point (TCP)**: Continuous trail drawn directly at the **tip of the gripper fingers** (`tcp_link`, Z = +12 cm from the wrist flange).
@@ -79,7 +79,7 @@ Quantitative comparison across 4 key metrics: **Maximum Velocity**, **Maximum Ac
 
 ---
 
-## 📁 Repository Structure
+##  Repository Structure
 
 ```
 KinovaCraft/
@@ -129,7 +129,7 @@ KinovaCraft/
 
 ---
 
-## ⚙️ Prerequisites
+##  Prerequisites
 
 ### MATLAB Side (Host Machine Windows / Mac / Linux)
 - **MATLAB R2021a** or later
@@ -146,7 +146,7 @@ KinovaCraft/
 
 ---
 
-## 🚀 Step-by-Step Execution Guide
+##  Step-by-Step Execution Guide
 
 ### 1. URDF Setup (Run once, on Linux)
 ```bash
@@ -162,7 +162,7 @@ source /opt/ros/humble/setup.bash
 colcon build --packages-select trajectory_planner_g6 --symlink-install
 source install/setup.bash
 
-export ROS_DOMAIN_ID=30
+export ROS_DOMAIN_ID= <your_VMware_ID>
 ros2 launch trajectory_planner_g6 matlab_rviz.launch.py
 ```
 > The Kinova Gen3 6-DOF appears in RViz2 in passive mode, waiting for MATLAB trajectory commands.
@@ -186,18 +186,17 @@ ros2 launch trajectory_planner_g6 matlab_rviz.launch.py
 
 ---
 
-## 📚 References & Sources
+##  References & Sources
 
 - **Kinova Robotics**: [ros2_kortex (GitHub)](https://github.com/Kinovarobotics/ros2_kortex) for the official Gen3 6-DOF URDF model.
 - **MathWorks Robotics System Toolbox**:
   - `importrobot`: Rigid body tree model import.
   - `inverseKinematics`: Numerical IK solver with weighting constraints.
   - `trapveltraj`, `cubicpolytraj`, `quinticpolytraj`, `bsplinepolytraj`: Joint trajectory generation tools.
-- **Robotiq**: [robotiq_description](https://github.com/PickNikRobotics/robotiq_description) for Robotiq 2F-85 gripper DAE/STL meshes.
 
 ---
 
 ## 👤 Author
 
-**Aziz** — Robotics & Autonomous Systems Engineering  
-*Individual project built with passion.*
+**Aziz IGUIDRE** — Future Engineer in Mechatronic at ENSA FES 
+
