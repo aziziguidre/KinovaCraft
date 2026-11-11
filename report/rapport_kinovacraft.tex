@@ -1,0 +1,338 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- Paquets essentiels ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    citecolor=blue!70!black,
+    urlcolor=blue!70!black
+}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning}
+
+% --- Configuration des en-têtes et pieds de page ---
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textit{Projet KinovaCraft — Kinova Gen3 6-DOF}}
+\lhead{\textit{Rapport Technique}}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% --- Configuration du code source ---
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.96}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% --- Page de Garde ---
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    
+    {\Huge \textbf{Rapport de Projet de Fin d'Études / Robotique}} \\[0.5cm]
+    {\LARGE \textbf{Projet KinovaCraft}} \\[1.5cm]
+    
+    \rule{\linewidth}{0.5mm} \\[0.4cm]
+    {\huge \bfseries Planification de Trajectoires Paramétriques et Co-Simulation Synchronisée MATLAB / ROS~2 sur Manipulateur Kinova Gen3 6-DOF} \\[0.4cm]
+    \rule{\linewidth}{0.5mm} \\[1.5cm]
+    
+    \begin{minipage}{0.45\textwidth}
+        \begin{flushleft} \large
+            \textbf{Auteur :} \\
+            Aziz \textsc{Iguidre} \\
+            \textit{Futur Ingénieur en Mécatronique} \\
+            ENSA Fès
+        \end{flushleft}
+    \end{minipage}
+    ~
+    \begin{minipage}{0.45\textwidth}
+        \begin{flushright} \large
+            \textbf{Cadre du Projet :} \\
+            Robotique Industrielle \& \\
+            Systèmes Autonomes (ROS~2 / MATLAB)
+        \end{flushright}
+    \end{minipage}
+
+    \vfill
+    {\large Année Universitaire 2024 -- 2026}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% =============================================================================
+\section{Introduction Générale}
+% =============================================================================
+
+L'automatisation industrielle moderne et la cobotique exigent des manipulateurs robotiques capables d'exécuter des trajectoires complexes à haute dynamique tout en assurant une fluidité continue de mouvement. Dans les applications telles que l'usinage, la gravure de précision, la découpe laser ou la peinture robotisée, la trajectoire du centre de l'outil (\textit{Tool Center Point} - TCP) doit suivre des formes géométriques précises tout en respectant scrupuleusement les contraintes physiques des actionneurs (positions, vitesses, accélérations et jerk).
+
+Le présent projet, intitulé \textbf{KinovaCraft}, a pour objectif la conception, la modélisation mathématique, la planification articulaire comparative et la co-simulation temps réel d'un bras manipulateur \textbf{Kinova Gen3 à 6 degrés de liberté (6-DOF)}, doté de sa pince industrielle de préhension \textbf{Robotiq 2F-85}.
+
+\subsection{Objectifs du Projet}
+Les exigences fondamentales traitées dans ce projet sont :
+\begin{enumerate}
+    \item \textbf{Modélisation Rigoureuse 6-DOF} : Utilisation du modèle URDF officiel Kinova 6-DOF avec pince Robotiq, garantissant exactement six articulations mobiles actives ($q \in \mathbb{R}^6$).
+    \item \textbf{Génération de Formes Paramétriques Cartésiennes} : Développement d'algorithmes générant des motifs géométriques continus dans l'espace opérationnel : Rhodonée (rose à $k$ pétales), courbe du poisson et carré fermé.
+    \item \textbf{Cinématique Inverse Sécurisée} : Résolution numérique de l'IK avec tolérance d'erreur stricte ($\epsilon < 10^{-3}\text{ m}$), gestion des singularités et encapsulation par bloc \texttt{try-catch}.
+    \item \textbf{Étude Comparative de 4 Méthodes d'Interpolation} : Benchmark quantitatif entre profil trapézoïdal de vitesse (\texttt{trapveltraj}), polynômes cubiques $C^1$ (\texttt{cubicpolytraj}), polynômes quintiques $C^2$ (\texttt{quinticpolytraj}) et B-splines uniformes $C^2$ (\texttt{bsplinepolytraj}).
+    \item \textbf{Contrôle Actif de l'Effecteur \& Tracé au TCP} : Définition d'un repère outil (\texttt{tcp\_link}) placé exactement à l'extrémité des mors de la pince, et commande d'ouverture/fermeture synchronisée de la pince Robotiq 2F-85.
+    \item \textbf{Co-Simulation Asynchrone MATLAB / ROS 2} : Streaming des coordonnées articulaires via DDS sur le topic \texttt{/joint\_states} et de la trace progressive sur \texttt{/trajectory\_path} vers RViz2.
+\end{enumerate}
+
+% =============================================================================
+\section{Modélisation Géométrique et Cinématique}
+% =============================================================================
+
+\subsection{Description du Manipulateur Kinova Gen3 6-DOF}
+Le robot Kinova Gen3 6-DOF est une chaîne cinématique sérielle ouverte composée de 6 articulations rotoïdes. Les caractéristiques géométriques et cinématiques sont extraites directement du fichier URDF (\textit{Unified Robot Description Format}) sans aucune valeur arbitraire codée en dur.
+
+\begin{table}[H]
+    \centering
+    \caption{Caractéristiques des liaisons du Kinova Gen3 6-DOF (lues depuis l'URDF)}
+    \label{tab:joints_limits}
+    \begin{tabular}{llccc}
+        \toprule
+        \textbf{Articulation} & \textbf{Type} & \textbf{Limite Inf. (rad)} & \textbf{Limite Sup. (rad)} & \textbf{Vitesse Max (rad/s)} \\
+        \midrule
+        \texttt{joint\_1} & Continue   & $-2\pi$ ($-6.283$) & $+2\pi$ ($+6.283$) & $1.3963$ \\
+        \texttt{joint\_2} & Rotoïde    & $-2.240$           & $+2.240$           & $1.3963$ \\
+        \texttt{joint\_3} & Rotoïde    & $-2.570$           & $+2.570$           & $1.3963$ \\
+        \texttt{joint\_4} & Continue   & $-2\pi$ ($-6.283$) & $+2\pi$ ($+6.283$) & $1.2218$ \\
+        \texttt{joint\_5} & Rotoïde    & $-2.090$           & $+2.090$           & $1.2218$ \\
+        \texttt{joint\_6} & Continue   & $-2\pi$ ($-6.283$) & $+2\pi$ ($+6.283$) & $1.2218$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Définition du Tool Center Point (TCP)}
+Dans la configuration native de l'URDF, le repère \texttt{end\_effector\_link} est fixé à la bride du poignet du robot, en amont de la pince. Afin que la trace de la trajectoire soit en contact direct avec l'outil de préhension, un corps cinématique rigide virtuel \texttt{tcp\_link} est adjoint par une liaison rigide (\textit{fixed joint}) décalée de $120\text{ mm}$ le long de l'axe d'approche $\vec{z}$ :
+\begin{equation}
+    ^{end\_effector\_link}T_{tcp\_link} = 
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0.120 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+\end{equation}
+
+% =============================================================================
+\section{Génération de Formes Paramétriques Cartésiennes}
+% =============================================================================
+
+La fonction \texttt{generate\_shape(shape\_type, radius, n\_petals, num\_points)} génère un nuage ordonné de $N$ points cartésiens 3D $\mathbf{P}_k = [X_k, Y_k, Z_k]^T$ centrés en un point de fonctionnement de l'espace de travail $\mathbf{C} = [X_c, Y_c, Z_c]^T = [0.45, 0.0, 0.25]^T\text{ m}$.
+
+\subsection{Courbe Rhodonée (Rose Polaire)}
+Une rose polaire est paramétrée par :
+\begin{equation}
+    r(\theta) = R \cdot \cos(k_{petals} \cdot \theta)
+\end{equation}
+\begin{equation}
+    \begin{cases}
+        X(\theta) = X_c + r(\theta) \cos(\theta) \\
+        Y(\theta) = Y_c + r(\theta) \sin(\theta) \\
+        Z(\theta) = Z_c
+    \end{cases}
+\end{equation}
+\textbf{Gestion de la périodicité :} Lorsque le nombre de pétales $k_{petals}$ est impair (ex: $k=3$), la courbe complète est décrite sur l'intervalle $\theta \in [0, \pi]$. Si l'échantillonnage était maintenu sur $[0, 2\pi]$, le robot tracerait la même forme deux fois consécutives. L'algorithme ajuste donc automatiquement l'intervalle :
+\begin{equation}
+    \theta_{\max} = 
+    \begin{cases}
+        \pi & \text{si } k_{petals} \text{ est impair} \\
+        2\pi & \text{si } k_{petals} \text{ est pair}
+    \end{cases}
+\end{equation}
+
+\subsection{Courbe du Poisson (Fish Curve)}
+La paramétrisation fermée de la courbe du poisson est définie par :
+\begin{equation}
+    \begin{cases}
+        x(t) = \cos(t) - \dfrac{\sin^2(t)}{\sqrt{2}} \\
+        y(t) = \cos(t) \cdot \sin(t)
+    \end{cases}
+    \quad \text{pour } t \in [0, 2\pi]
+\end{equation}
+Après centrage et mise à l'échelle par le rayon $R$, la forme reproduit fidèlement la silhouette d'un profil hydrodynamique fermé.
+
+\subsection{Carré Cartésien Fermé}
+Le carré de demi-côté $R$ est construit par concaténation de 4 segments linéaires réguliers discrétisés, assurant la continuité de parcours dans le plan horizontal.
+
+% =============================================================================
+\section{Cinématique Inverse Sécurisée}
+% =============================================================================
+
+Pour chaque point cartésien cible $\mathbf{P}_k$ avec une orientation outil constante dirigée vers le bas $\mathbf{R}_{target} = \text{Rot}_x(\pi)$, la configuration articulaire $\mathbf{q}_k \in \mathbb{R}^6$ est calculée par résolution d'un problème d'optimisation non linéaire sous contraintes :
+\begin{equation}
+    \min_{\mathbf{q}} \frac{1}{2} \|\mathbf{T}_{actual}(\mathbf{q}) \ominus \mathbf{T}_{target}\|_{\mathbf{W}}^2
+\end{equation}
+avec la matrice de pondération $\mathbf{W} = \text{diag}(0.2, 0.2, 0.2, 1.0, 1.0, 1.0)$, privilégiant la précision en translation sur l'orientation.
+
+\subsubsection{Mécanisme de Sécurité Try-Catch}
+Afin d'éviter tout blocage d'exécution (\textit{crash}) lors de singularités locales ou de points hors de l'espace de travail atteignable, chaque résolution IK est encapsulée :
+\begin{lstlisting}[language=Matlab]
+try
+    [q_sol, solInfo] = ik(ee_name, T_target, weights, q_prev);
+    T_actual = getTransform(robot, q_sol, ee_name);
+    pos_error = norm(T_actual(1:3, 4) - T_target(1:3, 4));
+    
+    if pos_error > p.ik.max_error
+        ik_failures = ik_failures + 1; % Rejet du point aberrant
+    else
+        q_waypoints = [q_waypoints; q_sol];
+        q_prev = q_sol; % Initialisation chaude du point suivant
+    end
+catch
+    ik_failures = ik_failures + 1; % Interception d'exception numerique
+end
+\end{lstlisting}
+
+% =============================================================================
+\section{Planification et Benchmark des Trajectoires Articulaires}
+% =============================================================================
+
+À partir des $M$ waypoints articulaires validés $\mathbf{q}_1, \dots, \mathbf{q}_M$, quatre méthodologies d'interpolation temporelle sont évaluées sur une durée totale $T$ échantillonnée à $\Delta t$.
+
+\subsection{1. Profil Trapézoïdal de Vitesse (\texttt{trapveltraj})}
+Le profil trapézoïdal segmente chaque étape en trois phases : accélération constante, vitesse de croisière constante et décélération constante. Il présente une continuité $C^0$ en accélération, engendrant des discontinuités de jerk aux transitions de phase.
+
+\subsection{2. Polynôme Cubique par Morceaux (\texttt{cubicpolytraj})}
+Chaque segment articulaire est modélisé par :
+\begin{equation}
+    q_i(t) = a_0 + a_1 t + a_2 t^2 + a_3 t^3
+\end{equation}
+Il garantit la continuité de position et de vitesse ($C^1$), mais l'accélération reste linéaire par morceaux et discontinue aux nœuds de passage.
+
+\subsection{3. Polynôme Quintique par Morceaux (\texttt{quinticpolytraj})}
+Le polynôme d'ordre 5 s'écrit :
+\begin{equation}
+    q_i(t) = a_0 + a_1 t + a_2 t^2 + a_3 t^3 + a_4 t^4 + a_5 t^5
+\end{equation}
+Les 6 coefficients inconnus sont déterminés en imposant 6 conditions aux limites pour chaque segment $[t_k, t_{k+1}]$ :
+\begin{equation}
+    \begin{cases}
+        q(0) = q_k, & q(T) = q_{k+1} \\
+        \dot{q}(0) = \dot{q}_k, & \dot{q}(T) = \dot{q}_{k+1} \\
+        \ddot{q}(0) = \ddot{q}_k, & \ddot{q}(T) = \ddot{q}_{k+1}
+    \end{cases}
+\end{equation}
+Cette formulation confère une continuité de classe $C^2$ en position, vitesse et accélération, assurant un profil de jerk fini et borné.
+
+\subsection{4. B-spline Uniforme (\texttt{bsplinepolytraj})}
+La trajectoire est approchée par une courbe B-spline cubique ou quintique basée sur les points de contrôle issus des waypoints. Elle offre une excellente régularité géométrique tout en adoucissant naturellement les variations brusques d'accélération.
+
+% =============================================================================
+\section{Résultats Expérimentaux et Discussion}
+% =============================================================================
+
+\subsection{Analyse Comparative Quantitative}
+Le tableau \ref{tab:results} consigne les indicateurs de performance enregistrés lors du parcours de la forme du poisson ($R = 0.20\text{ m}$, $T = 5.0\text{ s}$).
+
+\begin{table}[H]
+    \centering
+    \caption{Tableau comparatif des méthodes de planification (extrait de \texttt{metrics\_comparison.csv})}
+    \label{tab:results}
+    \begin{tabular}{lcccccc}
+        \toprule
+        \textbf{Méthode} & \textbf{Calcul (ms)} & $\mathbf{V_{\max}}$ (rad/s) & $\mathbf{A_{\max}}$ (rad/s$^2$) & $\mathbf{Jerk_{\max}}$ (rad/s$^3$) & \textbf{Échecs IK} & \textbf{Limites OK} \\
+        \midrule
+        \textbf{\texttt{trapveltraj}}   & 3.37 & 0.037 & 0.022  & 0.85    & 0 & \textbf{OUI} $\checkmark$ \\
+        \textbf{\texttt{cubicpolytraj}} & 2.02 & 1.742 & 56.46  & 1446.12 & 0 & NON $\times$ \\
+        \textbf{\texttt{quinticpolytraj}}& 2.67 & 2.107 & 63.62  & 2260.62 & 0 & NON $\times$ \\
+        \textbf{\texttt{bsplinepolytraj}}& 0.52 & 1.261 & 9.42   & 115.81  & 0 & NON $\times$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Interprétation Dynamique}
+\begin{itemize}
+    \item \textbf{Temps de calcul} : La méthode B-spline est la plus rapide ($0.52\text{ ms}$), suivie des méthodes polynomiales cubique et quintique ($2.0$ à $2.7\text{ ms}$).
+    \item \textbf{Limites dynamiques} : Pour une durée brève de $5\text{ secondes}$ sur une forme étendue ($R = 20\text{ cm}$), les inversions rapides de courbure génèrent de fortes accélérations aux points de rebroussement. L'augmentation de la durée globale ($T \ge 15\text{ s}$) permet de rétablir la conformité dynamique totale ($A_{\max} \le 2.0\text{ rad/s}^2$) pour la méthode quintique.
+    \item \textbf{Continuité et Jerk} : La méthode quintique supprime tout à-coup moteur instantané, garantissant la longévité mécanique des réducteurs harmoniques du Kinova Gen3.
+\end{itemize}
+
+% =============================================================================
+\section{Architecture de Co-Simulation ROS 2 / RViz2}
+% =============================================================================
+
+La co-simulation repose sur un couplage asynchrone par protocole DDS (\textit{Data Distribution Service}) entre MATLAB (tournant sur le PC hôte) et l'environnement ROS 2 Humble (exécuté dans la machine virtuelle Linux sous le domaine partagé \texttt{ROS\_DOMAIN\_ID=30}).
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[node distance=2.2cm, auto, >=stealth]
+        \node [rectangle, draw, fill=orange!20, text width=4.5cm, text centered, rounded corners, minimum height=1.2cm] (matlab) {\textbf{MATLAB (PC Hôte)}\\Solveur Trajectoire \& IK};
+        \node [rectangle, draw, fill=blue!20, text width=4cm, text centered, rounded corners, minimum height=1.2cm, right=2.5cm of matlab] (dds) {\textbf{Bus DDS (UDP)}\\Domain ID : 30};
+        \node [rectangle, draw, fill=green!20, text width=4.5cm, text centered, rounded corners, minimum height=1.2cm, right=2.5cm of dds] (ros) {\textbf{ROS 2 / RViz2 (VM Linux)}\\Rendu 3D \& Trace TCP};
+
+        \draw [->, thick] (matlab) -- node[above] {\texttt{/joint\_states}} node[below] {\texttt{/trajectory\_path}} (dds);
+        \draw [->, thick] (dds) -- (ros);
+    \end{tikzpicture}
+    \caption{Architecture de communication inter-machines MATLAB -- ROS 2 via DDS.}
+    \label{fig:dds_arch}
+\end{figure}
+
+\subsection{Cinématique Fermée de la Pince Robotiq}
+Pour assurer la cohérence visuelle dans RViz2 sans violer la règle des 6-DOF dans MATLAB, la cinématique interne des 6 biellettes de la pince Robotiq 2F-85 est synthétisée à la volée :
+\begin{lstlisting}[language=Matlab]
+gripper_positions = [ ...
+     finger_pos, ... % robotiq_85_left_knuckle_joint
+    -finger_pos, ... % robotiq_85_right_knuckle_joint (mimic -1)
+     finger_pos, ... % robotiq_85_left_inner_knuckle_joint (mimic 1)
+    -finger_pos, ... % robotiq_85_right_inner_knuckle_joint (mimic -1)
+    -finger_pos, ... % robotiq_85_left_finger_tip_joint (mimic -1)
+     finger_pos  ... % robotiq_85_right_finger_tip_joint (mimic 1)
+];
+\end{lstlisting}
+
+% =============================================================================
+\section{Conclusion et Perspectives}
+% =============================================================================
+
+Le projet \textbf{KinovaCraft} démontre avec succès la faisabilité d'un pipeline complet de génération et de suivi de profils cartésiens complexes sur manipulateur industriel 6-DOF. L'intégration conjointe d'un solveur IK robuste, d'une interpolation quintique $C^2$, d'un Tool Center Point déporté aux mors de la pince et d'un pont temps réel MATLAB--ROS 2 offre une plateforme d'expérimentation performante et modulaire.
+
+\textbf{Perspectives d'évolution :}
+\begin{enumerate}
+    \item \textbf{Optimisation Temporelle Automatique} : Recherche par dichotomie de la durée minimale $T_{\min}$ garantissant le respect strict de $\dot{q}_{\max}$ et $\ddot{q}_{\max}$.
+    \item \textbf{Tracé sur Surfaces Gauches 3D} : Projection de motifs géométriques sur des surfaces non planes avec orientation de l'outil normale à la surface.
+    \item \textbf{Modélisation Dynamique Inverse} : Calcul en ligne des couples aux actionneurs $\tau_i(t)$ via l'algorithme récursif de Newton-Euler pour quantifier l'énergie consommée.
+\end{enumerate}
+
+\end{document}

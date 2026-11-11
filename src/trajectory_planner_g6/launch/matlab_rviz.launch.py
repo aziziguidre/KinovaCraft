@@ -10,7 +10,6 @@ def generate_launch_description():
     Launch file reserve pour la simulation MATLAB :
       1. robot_state_publisher (charge l'URDF Kinova Gen3 6-DOF)
       2. rviz2 (affiche le robot en 3D)
-      -> Aucun analyzer_node ni joint_state_publisher Python.
       -> Le robot attend directement les messages de MATLAB sur /joint_states.
     """
     pkg_description_share = get_package_share_directory('kortex_description')
