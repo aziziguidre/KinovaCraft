@@ -60,7 +60,7 @@ end
 %% 4. Planification des Trajectoires
     fprintf('[4/8] Planification des trajectoires articulaires...\n');
     [traj_results] = plan_trajectories(q_waypoints, p);
-    idx_quintic = find(strcmp({traj_results.method}, 'bsplinepolytraj'), 1);
+    idx_quintic = find(strcmp({traj_results.method}, 'quinticpolytraj'), 1);
     if isempty(idx_quintic), idx_quintic = 1; end
     
   %% 5. Simulation en direct dans RViz2
