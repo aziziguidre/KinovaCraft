@@ -1,0 +1,30 @@
+# Git ignore pour KinovaCraft
+
+# MATLAB
+*.asv
+*.m~
+*.slxc
+*.matlab
+slprj/
+
+# ROS 2 & Colcon build artifacts
+build/
+install/
+log/
+.colcon/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
